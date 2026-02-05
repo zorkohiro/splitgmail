@@ -1,4 +1,5 @@
 import sys
+import shutil
 import os
 import getopt
 import mailbox
@@ -29,12 +30,12 @@ def main(argv):
 		if not gmail_labels:
 			boxes["archive"].add(message)
 			continue
-		gmail_labels = gmail_labels.lower()
-		if "spam" in gmail_labels:
+		lower_gmail_labels = gmail_labels.lower()
+		if "spam" in lower_gmail_labels:
 			continue
-		elif "inbox" in gmail_labels:
+		elif "inbox" in lower_gmail_labels:
 			boxes["inbox"].add(message)
-		elif "sent" in gmail_labels:
+		elif "sent" in lower_gmail_labels:
 			boxes["sent"].add(message)
 		else:
 			last_label = gmail_labels.split(',')[-1]
@@ -42,13 +43,12 @@ def main(argv):
 			if label != "important" and label != "unread" and label != "starred":
 				box_name = prefix+label.title()+".mbox"
 				if box_name not in boxes:
-					try:
-						os.mkdir(os.path.dirname(box_name))
-					except:
-						pass
+					dir = os.path.dirname(box_name)
+					if not os.path.isdir(dir):
+						print("Creating directory", dir)
+						os.makedirs(dir, exist_ok=True)
 					boxes[box_name] = mailbox.mbox(box_name, None, True)
 				boxes[box_name].add(message)
-				saved = True
 				print("add to", box_name)
 			else:
 				boxes["archive"].add(message)
